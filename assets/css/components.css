@@ -337,6 +337,21 @@
     color: var(--accent-primary);
 }
 
+/* Placeholder items */
+.library-item .item-icon i {
+    font-size: 24px;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.library-item.placeholder {
+    opacity: 0.8;
+}
+
+.library-item.placeholder:hover {
+    opacity: 1;
+}
+
 /* Artist Hero */
 .artist-hero {
     position: relative;
@@ -1097,4 +1112,335 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-weight: 400;
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 300px;
+    max-width: 400px;
+    transform: translateX(100%);
+    opacity: 0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.toast.hiding {
+    transform: translateX(100%);
+    opacity: 0;
+}
+
+.toast i:first-child {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.toast-message {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+.toast-close:hover {
+    opacity: 1;
+}
+
+/* Toast Types */
+.toast-success {
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    color: white;
+}
+
+.toast-error {
+    background: linear-gradient(135deg, #e91429, #f44336);
+    color: white;
+}
+
+.toast-info {
+    background: linear-gradient(135deg, #1db954, #1ed760);
+    color: white;
+}
+
+.toast-warning {
+    background: linear-gradient(135deg, #ff9800, #ffb74d);
+    color: white;
+}
+
+/* Toast Animation */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+    }
+
+    .toast {
+        min-width: auto;
+        max-width: none;
+        width: 100%;
+    }
+}
+
+/* Password Input with Toggle */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper .form-input {
+    padding-right: 50px; /* Tạo space cho icon */
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 32px;
+}
+
+.password-toggle:hover {
+    color: #1db954;
+    background-color: rgba(29, 185, 84, 0.1);
+}
+
+.password-toggle:active {
+    transform: translateY(-50%) scale(0.95);
+}
+
+.password-toggle i {
+    font-size: 16px;
+    transition: all 0.2s ease;
+}
+
+.password-toggle.showing i {
+    color: #1db954;
+}
+
+/* Focus state cho password input */
+.password-input-wrapper:focus-within .password-toggle {
+    color: #1db954;
+}
+
+/* Ẩn password toggle khi input trống */
+.password-input-wrapper:not(:focus-within) .password-toggle {
+    opacity: 0.7;
+}
+
+.password-input-wrapper:focus-within .password-toggle,
+.password-input-wrapper:hover .password-toggle {
+    opacity: 1;
+}
+
+/* Responsive cho password toggle */
+@media (max-width: 768px) {
+    .password-toggle {
+        padding: 6px;
+        min-width: 28px;
+        height: 28px;
+    }
+
+    .password-toggle i {
+        font-size: 14px;
+    }
+
+    .password-input-wrapper .form-input {
+        padding-right: 45px;
+    }
+}
+
+/* Server Status Indicator */
+.server-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-left: 20px;
+    font-size: 14px;
+    color: #fff;
+}
+
+.server-status:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.server-status:active {
+    transform: translateY(0);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #666;
+    transition: all 0.3s ease;
+}
+
+.status-dot.healthy {
+    background: #1db954;
+    box-shadow: 0 0 8px rgba(29, 185, 84, 0.5);
+}
+
+.status-dot.unhealthy {
+    background: #e74c3c;
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.5);
+    animation: pulse 2s infinite;
+}
+
+.status-dot.checking {
+    background: #f39c12;
+    box-shadow: 0 0 8px rgba(243, 156, 18, 0.5);
+    animation: spin 1s linear infinite;
+}
+
+.status-text {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Animations */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .server-status {
+        margin-left: 10px;
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .status-text {
+        display: none; /* Ẩn text trên mobile, chỉ hiển thị dot */
+    }
+}
+
+/* No Content State */
+.no-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xl);
+    text-align: center;
+    color: var(--text-secondary);
+    min-height: 200px;
+}
+
+.no-content i {
+    font-size: 48px;
+    margin-bottom: var(--spacing-md);
+    opacity: 0.6;
+}
+
+.no-content p {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0;
+}
+
+/* Debug info */
+.no-content small {
+    margin-top: var(--spacing-sm);
+    font-size: 12px;
+    color: var(--text-tertiary);
+    background: var(--bg-tertiary);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
 }

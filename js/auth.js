@@ -1,3 +1,5 @@
+import authManager from "./utils/authManager.js";
+
 // Auth Modal Functionality
 document.addEventListener("DOMContentLoaded", function () {
     // Get DOM elements
@@ -44,6 +46,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function closeModal() {
         authModal.classList.remove("show");
         document.body.style.overflow = "auto"; // Restore scrolling
+
+        // Xóa tất cả lỗi form khi đóng modal
+        if (
+            authManager &&
+            typeof authManager.clearAllFormErrors === "function"
+        ) {
+            authManager.clearAllFormErrors();
+        }
     }
 
     // Close modal when clicking close button
@@ -66,11 +76,25 @@ document.addEventListener("DOMContentLoaded", function () {
     // Switch to Login form
     showLoginBtn.addEventListener("click", function () {
         showLoginForm();
+        // Clear form data và errors khi chuyển form
+        if (
+            authManager &&
+            typeof authManager.clearAllFormErrors === "function"
+        ) {
+            authManager.clearAllFormErrors();
+        }
     });
 
     // Switch to Signup form
     showSignupBtn.addEventListener("click", function () {
         showSignupForm();
+        // Clear form data và errors khi chuyển form
+        if (
+            authManager &&
+            typeof authManager.clearAllFormErrors === "function"
+        ) {
+            authManager.clearAllFormErrors();
+        }
     });
 });
 
@@ -78,7 +102,6 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const userAvatar = document.getElementById("userAvatar");
     const userDropdown = document.getElementById("userDropdown");
-    const logoutBtn = document.getElementById("logoutBtn");
 
     // Toggle dropdown when clicking avatar
     userAvatar.addEventListener("click", function (e) {
@@ -102,18 +125,19 @@ document.addEventListener("DOMContentLoaded", function () {
             userDropdown.classList.remove("show");
         }
     });
-
-    // Handle logout button click
-    logoutBtn.addEventListener("click", function () {
-        // Close dropdown first
-        userDropdown.classList.remove("show");
-
-        console.log("Logout clicked");
-        // TODO: Students will implement logout logic here
-    });
 });
 
-// Other functionality
-document.addEventListener("DOMContentLoaded", function () {
-    // TODO: Implement other functionality here
+// Disable context menu (right-click menu)
+document.addEventListener("contextmenu", function (e) {
+    e.preventDefault();
+});
+
+// Disable text selection
+document.addEventListener("selectstart", function (e) {
+    e.preventDefault();
+});
+
+// Disable drag and drop
+document.addEventListener("dragstart", function (e) {
+    e.preventDefault();
 });

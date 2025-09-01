@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Health Check Monitor</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                padding: 20px;
+                background: #f5f5f5;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                background: white;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            }
+            .status-section {
+                margin: 20px 0;
+                padding: 15px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+            }
+            .status-indicator {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                background: rgba(0, 0, 0, 0.1);
+                border-radius: 20px;
+                margin: 10px 0;
+            }
+            .status-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #666;
+            }
+            .status-dot.healthy {
+                background: #1db954;
+            }
+            .status-dot.unhealthy {
+                background: #e74c3c;
+            }
+            .status-dot.checking {
+                background: #f39c12;
+            }
+            button {
+                background: #1db954;
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 5px;
+                cursor: pointer;
+                margin: 5px;
+            }
+            button:hover {
+                background: #1ed760;
+            }
+            .log {
+                background: #f8f9fa;
+                padding: 10px;
+                border-radius: 5px;
+                font-family: monospace;
+                max-height: 200px;
+                overflow-y: auto;
+            }
+            .info-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 15px;
+                margin: 15px 0;
+            }
+            .info-card {
+                background: #f8f9fa;
+                padding: 15px;
+                border-radius: 5px;
+                border-left: 4px solid #1db954;
+            }
+            .info-card.offline {
+                border-left-color: #e74c3c;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Health Check Monitor</h1>
+            <p>
+                Monitoring server health at:
+                <strong id="serverUrl">https://spotify.f8team.dev</strong>
+            </p>
+
+            <div class="status-section">
+                <h3>Server Status</h3>
+                <div id="server-status" class="status-indicator">
+                    <div class="status-dot"></div>
+                    <span class="status-text">Initializing...</span>
+                </div>
+                <div>
+                    <button onclick="manualCheck()">Manual Check</button>
+                    <button onclick="getStatus()">Get Status</button>
+                    <button onclick="testEndpoints()">Test Endpoints</button>
+                    <button onclick="clearLog()">Clear Log</button>
+                    <button onclick="toggleAutoCheck()">
+                        Toggle Auto Check
+                    </button>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <h3>Server Information</h3>
+                <div class="info-grid">
+                    <div class="info-card" id="healthCard">
+                        <h4>Health Status</h4>
+                        <p id="healthStatus">Unknown</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Last Check</h4>
+                        <p id="lastCheck">Never</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Retry Count</h4>
+                        <p id="retryCount">0</p>
+                    </div>
+                    <div class="info-card">
+                        <h4>Check Interval</h4>
+                        <p id="checkInterval">30s</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-section">
+                <h3>Event Log</h3>
+                <div id="eventLog" class="log"></div>
+            </div>
+        </div>
+
+        <script type="module">
+            import HealthCheck from "./js/utils/healthCheck.js";
+            import "./js/utils/toast.js";
+
+            let healthChecker;
+            let logElement;
+            let autoCheckEnabled = true;
+            let statusUpdateInterval;
+
+            // Khởi tạo health check
+            document.addEventListener("DOMContentLoaded", function () {
+                logElement = document.getElementById("eventLog");
+
+                // Override createStatusIndicator để sử dụng element có sẵn
+                const originalCreateStatusIndicator =
+                    HealthCheck.prototype.createStatusIndicator;
+                HealthCheck.prototype.createStatusIndicator = function () {
+                    // Sử dụng element có sẵn thay vì tạo mới
+                    this.statusIndicator =
+                        document.getElementById("server-status");
+                    if (this.statusIndicator) {
+                        this.statusIndicator.innerHTML = `
+                        <div class="status-dot"></div>
+                        <span class="status-text">Initializing...</span>
+                    `;
+                    }
+                };
+
+                // Khởi tạo health checker
+                healthChecker = new HealthCheck();
+
+                // Log initialization
+                log("🚀 Health Check System initialized");
+
+                // Override showErrorToast để log thay vì hiển thị toast
+                const originalShowErrorToast = healthChecker.showErrorToast;
+                healthChecker.showErrorToast = function (errorMessage) {
+                    log(`❌ Error: ${errorMessage}`);
+                    originalShowErrorToast.call(this, errorMessage);
+                };
+
+                // Override handleHealthyStatus để log và update UI
+                const originalHandleHealthyStatus =
+                    healthChecker.handleHealthyStatus;
+                healthChecker.handleHealthyStatus = function (data) {
+                    log(`✅ Server healthy: ${JSON.stringify(data)}`);
+                    // Force update UI với status healthy
+                    updateStatusUI("healthy", data);
+                    originalHandleHealthyStatus.call(this, data);
+                };
+
+                // Override handleUnhealthyStatus để log và update UI
+                const originalHandleUnhealthyStatus =
+                    healthChecker.handleUnhealthyStatus;
+                healthChecker.handleUnhealthyStatus = function (errorMessage) {
+                    log(`❌ Server unhealthy: ${errorMessage}`);
+                    // Force update UI với status unhealthy
+                    updateStatusUI("unhealthy");
+                    originalHandleUnhealthyStatus.call(this, errorMessage);
+                };
+
+                // Bắt đầu update status UI
+                startStatusUpdate();
+            });
+
+            // Update status UI
+            function updateStatusUI(status, data = null) {
+                console.log(
+                    `[updateStatusUI] Updating UI with status: ${status}`,
+                    data
+                );
+
+                const statusDot = document.querySelector(
+                    "#server-status .status-dot"
+                );
+                const statusText = document.querySelector(
+                    "#server-status .status-text"
+                );
+                const healthStatus = document.getElementById("healthStatus");
+                const lastCheck = document.getElementById("lastCheck");
+                const retryCount = document.getElementById("retryCount");
+                const healthCard = document.getElementById("healthCard");
+
+                if (statusDot) {
+                    statusDot.className = `status-dot ${status}`;
+                }
+
+                if (statusText) {
+                    if (status === "healthy" && data) {
+                        const uptime = data.uptime
+                            ? formatUptime(data.uptime)
+                            : "";
+                        statusText.textContent = uptime
+                            ? `Server online (${uptime})`
+                            : "Server online";
+                    } else if (status === "unhealthy") {
+                        statusText.textContent = "Server offline";
+                    } else if (status === "checking") {
+                        statusText.textContent = "Checking...";
+                    }
+                    // Không reset về "Checking..." nếu status không phải là "checking"
+                }
+
+                // Update info cards
+                if (healthStatus) {
+                    healthStatus.textContent =
+                        status === "healthy" ? "🟢 Online" : "🔴 Offline";
+                }
+
+                if (lastCheck) {
+                    lastCheck.textContent = new Date().toLocaleTimeString();
+                }
+
+                if (retryCount && healthChecker) {
+                    retryCount.textContent = healthChecker.getRetryCount();
+                }
+
+                if (healthCard) {
+                    healthCard.className = `info-card ${
+                        status === "healthy" ? "" : "offline"
+                    }`;
+                }
+            }
+
+            // Format uptime
+            function formatUptime(seconds) {
+                const days = Math.floor(seconds / 86400);
+                const hours = Math.floor((seconds % 86400) / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+
+                if (days > 0) {
+                    return `${days}d ${hours}h`;
+                } else if (hours > 0) {
+                    return `${hours}h ${minutes}m`;
+                } else {
+                    return `${minutes}m`;
+                }
+            }
+
+            // Start status update interval
+            function startStatusUpdate() {
+                statusUpdateInterval = setInterval(() => {
+                    if (healthChecker) {
+                        const status = healthChecker.isServerHealthy();
+                        console.log("[StatusUpdate] Current status:", status);
+                        // Chỉ update UI nếu có status rõ ràng và khác với status hiện tại
+                        if (status !== undefined) {
+                            const currentStatus = status
+                                ? "healthy"
+                                : "unhealthy";
+                            // Không gọi updateStatusUI để tránh ghi đè status từ health check
+                            console.log(
+                                "[StatusUpdate] Status unchanged, not updating UI"
+                            );
+                        }
+                    }
+                }, 1000);
+            }
+
+            // Manual check function
+            window.manualCheck = function () {
+                if (healthChecker) {
+                    log("🔄 Manual check triggered");
+                    healthChecker.manualCheck();
+                }
+            };
+
+            // Get status function
+            window.getStatus = function () {
+                if (healthChecker) {
+                    const status = healthChecker.getStatus();
+                    log(`📋 Current status: ${JSON.stringify(status)}`);
+                }
+            };
+
+            // Clear log function
+            window.clearLog = function () {
+                if (logElement) {
+                    logElement.innerHTML = "";
+                }
+            };
+
+            // Toggle auto check
+            window.toggleAutoCheck = function () {
+                if (healthChecker) {
+                    if (autoCheckEnabled) {
+                        healthChecker.stop();
+                        autoCheckEnabled = false;
+                        log("⏸️ Auto check disabled");
+                    } else {
+                        healthChecker.startPeriodicCheck();
+                        autoCheckEnabled = true;
+                        log("▶️ Auto check enabled");
+                    }
+                }
+            };
+
+            // Test endpoints
+            window.testEndpoints = function () {
+                if (healthChecker) {
+                    log("🧪 Testing endpoints...");
+                    healthChecker.testEndpoint("/health");
+                    healthChecker.testEndpoint("/api");
+                }
+            };
+
+            // Log function
+            function log(message) {
+                if (logElement) {
+                    const timestamp = new Date().toLocaleTimeString();
+                    const logEntry = document.createElement("div");
+                    logEntry.textContent = `[${timestamp}] ${message}`;
+                    logElement.appendChild(logEntry);
+                    logElement.scrollTop = logElement.scrollHeight;
+                }
+            }
+        </script>
+    </body>
+</html>
