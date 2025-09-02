@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Đen - Spotify</title>
+        <title>Spotify - Web Player</title>
 
         <!-- Favicon -->
         <link rel="icon" href="./assets/images/favicon.ico" />
@@ -43,14 +43,79 @@
                         <button class="nav-tab">Artists</button>
                     </div>
 
-                    <div class="search-library">
-                        <button class="search-library-btn">
+                    <div class="search-library" id="librarySearch">
+                        <button
+                            class="search-library-btn"
+                            id="librarySearchBtn"
+                            title="Search in Your Library">
                             <i class="fas fa-search"></i>
                         </button>
-                        <button class="sort-btn">
-                            Recents
-                            <i class="fas fa-list"></i>
-                        </button>
+                        <input
+                            type="text"
+                            class="library-search-input"
+                            id="librarySearchInput"
+                            placeholder="Search in Your Library"
+                            aria-label="Search in Your Library" />
+                        <div class="sort-menu">
+                            <button class="sort-btn" id="sortToggle">
+                                <span class="sort-label">Recents</span>
+                                <i class="fas fa-list"></i>
+                            </button>
+                            <div
+                                class="sort-dropdown"
+                                id="sortDropdown"
+                                aria-hidden="true">
+                                <div class="sort-section-title">Sort by</div>
+                                <button
+                                    class="sort-option active"
+                                    data-value="recents">
+                                    <span>Recents</span>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button
+                                    class="sort-option"
+                                    data-value="recently-added">
+                                    <span>Recently Added</span>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button
+                                    class="sort-option"
+                                    data-value="alphabetical">
+                                    <span>Alphabetical</span>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <button
+                                    class="sort-option"
+                                    data-value="creator">
+                                    <span>Creator</span>
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                <div class="sort-divider"></div>
+                                <div class="sort-section-title">View as</div>
+                                <div class="view-as-grid">
+                                    <button
+                                        class="view-as-btn active"
+                                        data-view="list">
+                                        <i class="fas fa-bars"></i>
+                                    </button>
+                                    <button
+                                        class="view-as-btn"
+                                        data-view="compact">
+                                        <i class="fas fa-table-cells"></i>
+                                    </button>
+                                    <button
+                                        class="view-as-btn"
+                                        data-view="grid">
+                                        <i class="fas fa-grip"></i>
+                                    </button>
+                                    <button
+                                        class="view-as-btn"
+                                        data-view="detailed">
+                                        <i class="fas fa-border-all"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="library-content">
@@ -367,10 +432,142 @@
                         </div>
                     </section>
 
+                    <!-- Playlist Detail Section (Hidden by default) -->
+                    <section class="playlist-hero" style="display: none">
+                        <div class="hero-background">
+                            <div
+                                class="playlist-cover clickable"
+                                id="playlistCover"
+                                style="
+                                    width: 232px;
+                                    height: 232px;
+                                    background: var(--bg-tertiary);
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    border-radius: 8px;
+                                ">
+                                <span style="color: var(--text-secondary)"
+                                    >Choose photo</span
+                                >
+                            </div>
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <div
+                                class="verified-badge"
+                                style="
+                                    display: flex;
+                                    gap: 8px;
+                                    align-items: center;
+                                ">
+                                <span>Public Playlist</span>
+                            </div>
+                            <h1
+                                class="playlist-name clickable"
+                                id="playlistNameDisplay">
+                                My Playlist
+                            </h1>
+                            <p class="playlist-owner" id="playlistOwner">
+                                Owner
+                            </p>
+                        </div>
+                    </section>
+
+                    <section class="playlist-tools" style="display: none">
+                        <div class="search-box" style="max-width: 420px">
+                            <div class="search-input-wrapper">
+                                <i class="fas fa-search search-icon"></i>
+                                <input
+                                    type="text"
+                                    placeholder="Search for songs or episodes"
+                                    class="search-input"
+                                    id="playlistSearch" />
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Edit Playlist Modal -->
+                    <div
+                        class="modal-overlay"
+                        id="editPlaylistModal"
+                        style="display: none">
+                        <div class="modal-container">
+                            <button class="modal-close" id="editPlaylistClose">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <div class="modal-content">
+                                <h1 class="modal-heading">Edit details</h1>
+                                <div
+                                    style="
+                                        display: flex;
+                                        gap: 24px;
+                                        align-items: flex-start;
+                                    ">
+                                    <div
+                                        id="editPlaylistImage"
+                                        style="
+                                            width: 220px;
+                                            height: 220px;
+                                            background: var(--bg-tertiary);
+                                            border-radius: 8px;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            cursor: pointer;
+                                        ">
+                                        <i
+                                            class="fas fa-music"
+                                            style="
+                                                font-size: 48px;
+                                                color: var(--text-secondary);
+                                            "></i>
+                                    </div>
+                                    <div
+                                        style="
+                                            flex: 1;
+                                            display: flex;
+                                            flex-direction: column;
+                                            gap: 16px;
+                                        ">
+                                        <input
+                                            id="editPlaylistName"
+                                            class="form-input"
+                                            placeholder="Playlist name" />
+                                        <textarea
+                                            id="editPlaylistDescription"
+                                            class="form-input"
+                                            rows="4"
+                                            placeholder="Add an optional description"></textarea>
+                                        <div
+                                            style="
+                                                display: flex;
+                                                justify-content: flex-end;
+                                            ">
+                                            <button
+                                                class="auth-submit-btn"
+                                                id="editPlaylistSave">
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <input
+                                    type="file"
+                                    id="editPlaylistFile"
+                                    accept="image/*"
+                                    style="display: none" />
+                            </div>
+                        </div>
+                    </div>
                     <!-- Artist Controls (Hidden for Home Page) -->
                     <section class="artist-controls" style="display: none">
                         <button class="play-btn-large">
                             <i class="fas fa-play"></i>
+                        </button>
+                        <button class="follow-btn" id="artistFollowBtn">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Follow</span>
                         </button>
                     </section>
 
@@ -453,26 +650,32 @@
                         </div>
                         <div class="player-artist">Noo Phước Thịnh</div>
                     </div>
-                    <button class="add-btn">
+                    <button class="add-btn" data-tooltip="Add to library">
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
 
                 <div class="player-center">
                     <div class="player-controls">
-                        <button class="control-btn active">
+                        <button
+                            class="control-btn"
+                            data-tooltip="Enable shuffle">
                             <i class="fas fa-random"></i>
                         </button>
-                        <button class="control-btn">
+                        <button class="control-btn" data-tooltip="Previous">
                             <i class="fas fa-step-backward"></i>
                         </button>
-                        <button class="control-btn play-btn">
+                        <button
+                            class="control-btn play-btn"
+                            data-tooltip="Pause">
                             <i class="fas fa-pause"></i>
                         </button>
-                        <button class="control-btn">
+                        <button class="control-btn" data-tooltip="Next">
                             <i class="fas fa-step-forward"></i>
                         </button>
-                        <button class="control-btn">
+                        <button
+                            class="control-btn"
+                            data-tooltip="Enable repeat">
                             <i class="fas fa-redo"></i>
                         </button>
                     </div>
@@ -487,11 +690,11 @@
                 </div>
 
                 <div class="player-right">
-                    <button class="control-btn">
+                    <button class="control-btn" data-tooltip="Lyrics">
                         <i class="fas fa-microphone"></i>
                     </button>
                     <div class="volume-container">
-                        <button class="control-btn">
+                        <button class="control-btn" data-tooltip="Volume">
                             <i class="fas fa-volume-down"></i>
                         </button>
                         <div class="volume-bar">
@@ -499,7 +702,7 @@
                             <div class="volume-handle"></div>
                         </div>
                     </div>
-                    <button class="control-btn">
+                    <button class="control-btn" data-tooltip="Full screen">
                         <i class="fas fa-expand"></i>
                     </button>
                 </div>
@@ -636,5 +839,6 @@
 
         <script type="module" src="./js/auth.js"></script>
         <script type="module" src="./js/home.js"></script>
+        <script type="module" src="./js/player.js"></script>
     </body>
 </html>

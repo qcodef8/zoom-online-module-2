@@ -30,6 +30,7 @@
 .logo i {
     font-size: 32px;
     color: var(--text-primary);
+    cursor: pointer;
 }
 
 .sidebar-nav {

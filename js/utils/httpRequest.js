@@ -60,7 +60,6 @@ class HttpRequest {
                 method,
                 headers: {
                     ...options.headers,
-                    "Content-Type": "application/json",
                 },
                 ...options,
             };
@@ -71,7 +70,12 @@ class HttpRequest {
             }
 
             if (data) {
-                _options.body = JSON.stringify(data);
+                if (options.isFormData) {
+                    _options.body = data;
+                } else {
+                    _options.headers["Content-Type"] = "application/json";
+                    _options.body = JSON.stringify(data);
+                }
             }
 
             // Use custom baseURL if provided, otherwise use default
@@ -129,37 +133,19 @@ class HttpRequest {
         return await this._send(path, "DELETE", null, options);
     }
 
+    // Multipart/form-data upload helper (accepts FormData body)
+    async postForm(path, formData, options = {}) {
+        return await this._send(path, "POST", formData, {
+            ...options,
+            isFormData: true,
+        });
+    }
+
     // Force refresh health check
     async refreshHealthCheck() {
         if (this.healthChecker) {
             await this.healthChecker.manualCheck();
         }
-    }
-
-    // Get current server status
-    getServerStatus() {
-        if (this.healthChecker) {
-            return this.healthChecker.getStatus();
-        }
-        return { isHealthy: false, lastCheck: null, retryCount: 0 };
-    }
-
-    // Check if user is authenticated
-    isAuthenticated() {
-        const accessToken = localStorage.getItem("access_token");
-        return !!accessToken;
-    }
-
-    // Get current access token
-    getAccessToken() {
-        return localStorage.getItem("accessToken");
-    }
-
-    // Clear authentication data
-    clearAuth() {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user");
     }
 
     // Handle token refresh when access token expires
@@ -168,44 +154,34 @@ class HttpRequest {
             const refreshToken = localStorage.getItem("refresh_token");
             if (!refreshToken) {
                 console.log("No refresh token available");
-                this.clearAuth();
+                this.clearAuth?.();
                 return false;
             }
 
-            console.log("Attempting to refresh access token...");
+            // Use internal _send to keep consistent behavior
+            const data = await this._send(
+                "/auth/refresh",
+                "POST",
+                { refresh_token: refreshToken },
+                { skipAuth: true, isRefreshRequest: true }
+            );
 
-            // Call refresh token endpoint
-            const response = await fetch(`${this.baseUrl}/auth/refresh`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    refresh_token: refreshToken,
-                }),
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-
-                // Update tokens
+            if (data && (data.access_token || data.refresh_token)) {
                 if (data.access_token) {
                     localStorage.setItem("access_token", data.access_token);
                 }
                 if (data.refresh_token) {
                     localStorage.setItem("refresh_token", data.refresh_token);
                 }
-
-                console.log("Token refreshed successfully");
                 return true;
-            } else {
-                console.log("Token refresh failed");
-                this.clearAuth();
-                return false;
             }
+
+            console.log("Token refresh failed");
+            this.clearAuth?.();
+            return false;
         } catch (error) {
             console.error("Error refreshing token:", error);
-            this.clearAuth();
+            this.clearAuth?.();
             return false;
         }
     }

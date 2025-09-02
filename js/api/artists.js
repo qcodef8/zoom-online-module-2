@@ -1,39 +1,39 @@
-import httpRequest from '../utils/httpRequest.js';
+import httpRequest from "../utils/httpRequest.js";
 
 class ArtistsAPI {
     // Get all artists with optional search and pagination
     async getAllArtists(options = {}) {
-        const { search, page = 1, limit = 20, sort = 'name' } = options;
-        
-        let endpoint = '/artists';
+        const { search, page = 1, limit = 20, sort = "name" } = options;
+
+        let endpoint = "/artists";
         const params = new URLSearchParams();
-        
-        if (search) params.append('search', search);
-        if (page > 1) params.append('page', page);
-        if (limit !== 20) params.append('limit', limit);
-        if (sort !== 'name') params.append('sort', sort);
-        
+
+        if (search) params.append("search", search);
+        if (page > 1) params.append("page", page);
+        if (limit !== 20) params.append("limit", limit);
+        if (sort !== "name") params.append("sort", sort);
+
         if (params.toString()) {
             endpoint += `?${params.toString()}`;
         }
-        
+
         return await httpRequest.get(endpoint);
     }
 
     // Get trending artists
     async getTrendingArtists(options = {}) {
-        const { limit = 10, timeRange = 'week' } = options;
-        
-        let endpoint = '/artists/trending';
+        const { limit = 10, timeRange = "week" } = options;
+
+        let endpoint = "/artists/trending";
         const params = new URLSearchParams();
-        
-        if (limit !== 10) params.append('limit', limit);
-        if (timeRange !== 'week') params.append('time_range', timeRange);
-        
+
+        if (limit !== 10) params.append("limit", limit);
+        if (timeRange !== "week") params.append("time_range", timeRange);
+
         if (params.toString()) {
             endpoint += `?${params.toString()}`;
         }
-        
+
         return await httpRequest.get(endpoint);
     }
 
@@ -45,30 +45,30 @@ class ArtistsAPI {
     // Get artist's popular tracks
     async getArtistPopularTracks(id, options = {}) {
         const { limit = 10 } = options;
-        
+
         let endpoint = `/artists/${id}/tracks/popular`;
         if (limit !== 10) {
             endpoint += `?limit=${limit}`;
         }
-        
+
         return await httpRequest.get(endpoint);
     }
 
     // Get artist's albums
     async getArtistAlbums(id, options = {}) {
-        const { page = 1, limit = 20, type = 'all' } = options;
-        
+        const { page = 1, limit = 20, type = "all" } = options;
+
         let endpoint = `/artists/${id}/albums`;
         const params = new URLSearchParams();
-        
-        if (page > 1) params.append('page', page);
-        if (limit !== 20) params.append('limit', limit);
-        if (type !== 'all') params.append('type', type);
-        
+
+        if (page > 1) params.append("page", page);
+        if (limit !== 20) params.append("limit", limit);
+        if (type !== "all") params.append("type", type);
+
         if (params.toString()) {
             endpoint += `?${params.toString()}`;
         }
-        
+
         return await httpRequest.get(endpoint);
     }
 
@@ -84,7 +84,7 @@ class ArtistsAPI {
 
     // Create new artist (admin only)
     async createArtist(data) {
-        return await httpRequest.post('/artists', data);
+        return await httpRequest.post("/artists", data);
     }
 
     // Update artist (admin only)
@@ -100,33 +100,33 @@ class ArtistsAPI {
     // Get followed artists (authenticated)
     async getFollowedArtists(options = {}) {
         const { page = 1, limit = 20 } = options;
-        
-        let endpoint = '/me/artists/followed';
+
+        let endpoint = "/me/following";
         const params = new URLSearchParams();
-        
-        if (page > 1) params.append('page', page);
-        if (limit !== 20) params.append('limit', limit);
-        
+
+        if (page > 1) params.append("page", page);
+        if (limit !== 20) params.append("limit", limit);
+
         if (params.toString()) {
             endpoint += `?${params.toString()}`;
         }
-        
+
         return await httpRequest.get(endpoint);
     }
 
     // Search artists specifically
     async searchArtists(query, options = {}) {
         const { page = 1, limit = 20 } = options;
-        
-        let endpoint = '/search/artists';
+
+        let endpoint = "/search/artists";
         const params = new URLSearchParams();
-        
-        params.append('q', query);
-        if (page > 1) params.append('page', page);
-        if (limit !== 20) params.append('limit', limit);
-        
+
+        params.append("q", query);
+        if (page > 1) params.append("page", page);
+        if (limit !== 20) params.append("limit", limit);
+
         endpoint += `?${params.toString()}`;
-        
+
         return await httpRequest.get(endpoint);
     }
 }
